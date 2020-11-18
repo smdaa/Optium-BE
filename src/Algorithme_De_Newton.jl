@@ -55,23 +55,25 @@ function Algorithme_De_Newton(f::Function,gradf::Function,hessf::Function,x0,opt
         f_min = 0
         flag = 0
         nb_iters = 0
-        s1 = 1
-        s2 = 1
+        stagnation_x = 1
+        stagnation_f = 1
 
-        while ((norm(gradf(x0)) > max(Tol_rel * norm(gradf(x0)), Tol_abs)) && (nb_iters <= max_iter))
+        while ((norm(gradf(x0)) > max(Tol_rel * norm(gradf(x0)), Tol_abs)) && (nb_iters <= max_iter)) && (stagnation_x > 0) && (stagnation_f > 0)
             dk =  hessf(x0) \ (- gradf(x0))
             x1 = x0 + dk
-            s1 = norm(x1 - x0) - max(Tol_rel * norm(x0), Tol_abs)
-            s2 = norm(f(x1) - f(x0)) - max(Tol_rel * norm(f(x0)), Tol_abs)
+            stagnation_x = norm(dk) - max(Tol_rel * norm(x0), Tol_abs)
+            stagnation_f = norm(f(x1) - f(x0)) - max(Tol_rel * norm(f(x0)), Tol_abs)
             x0 = x1
             nb_iters = nb_iters + 1
         end
-        if (nb_iters > max_iter)
-            flag = 3
-        elseif (s1 <= 0 )
+        if ((norm(gradf(x0)) <= max(Tol_rel * norm(gradf(x0)), Tol_abs)))
+            flag = 0
+        elseif (stagnation_x <= 0 )
             flag = 1
-        elseif (s2 <= 0 )
+        elseif (stagnation_f <= 0 )
             flag = 2
+        elseif (nb_iters > max_iter)
+            flag = 3
         end
         xmin = x0
         f_min = f(xmin)
