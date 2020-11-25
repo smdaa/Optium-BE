@@ -37,6 +37,29 @@ function Pas_De_Cauchy(g,H,delta)
     e = 0
     n = length(g)
     s = zeros(n)
+
+    ng = norm(g)
+    x = transpose(g) * H * g
+
+    if (ng == 0)
+      s = zeros(n)
+      e = 0
+    elseif x > 0
+      #Cas Convexe
+      t = (ng^2) / x
+      if t > delta
+        t = delta / ng
+        e = -1
+      else
+        e = 1
+      end
+      s = - t * g
+    else 
+      #Cas Concave
+      t = (delta / ng)
+      s = - t * g
+      e = 0
+    end
     
     return s, e
 end
