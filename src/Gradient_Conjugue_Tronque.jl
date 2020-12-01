@@ -42,6 +42,64 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
     end
 
    n = length(gradfk)
-   s = zeros(n)
-   return s
+   sj = zeros(n)
+   p = -(gradfk)
+   g = gradfk
+
+   for j = 1:max_iter
+
+        #a
+        k = transpose(p) * hessfk * p
+
+        #b
+        if (k <= 0)
+            discriminant = 4 * (sj * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+            sigma1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
+            sigma2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
+            s1 = sj + sigma1 * p
+            s2 = sj + sigma2 * p
+            if (transpose(gradfk) * s1 + (1 / 2) * transpose(s1) * hessfk * s1) < (transpose(gradfk) * s2 + (1 / 2) * transpose(s2) * hessfk * s2)
+                s = s1
+            else
+                s = s2
+            end
+       end
+
+       #c
+       alpha = transpose(g) * g / k
+
+       #d
+       if norm(sj + alpha * p) >= deltak
+           discriminant = 4 * (sj * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+           sigma1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
+           sigma2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
+           s1 = sj + sigma1 * p
+           s2 = sj + sigma2 * p
+           s=min((transpose(gradfk) * s1 + (1 / 2) * transpose(s1) * hessfk * s1),(transpose(gradfk) * s2 + (1 / 2) * transpose(s2) * hessfk * s2))
+       end
+
+
+
+       #e
+       s = sj +alpha*p
+
+       #f
+       g_next = g+alpha*hessfk*p
+
+       #g
+       beta = transpose(g_next)*g/(transpose(g)*g)
+
+       #h
+       p = -g_next + beta*p
+
+       #i
+       convergence = (norm(gradfk) <=  Tol)
+
+       if convergence
+           break
+       end
+   end
+
+return s
+
 end

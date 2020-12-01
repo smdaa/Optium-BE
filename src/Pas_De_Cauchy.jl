@@ -1,5 +1,5 @@
 @doc doc"""
-Approximation de la solution du sous-problème ``q_k(s) = s^{t}g + (1/2)s^{t}Hs`` 
+Approximation de la solution du sous-problème ``q_k(s) = s^{t}g + (1/2)s^{t}Hs``
         avec ``s=-t g_k,t > 0,||s||< \delta_k ``
 
 
@@ -47,19 +47,19 @@ function Pas_De_Cauchy(g,H,delta)
     elseif x > 0
       #Cas Convexe
       t = (ng^2) / x
-      if t > delta
+      if t > delta/ng
         t = delta / ng
         e = -1
       else
         e = 1
       end
       s = - t * g
-    else 
+    else
       #Cas Concave
       t = (delta / ng)
       s = - t * g
       e = 0
     end
-    
+
     return s, e
 end
