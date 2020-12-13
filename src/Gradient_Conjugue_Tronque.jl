@@ -7,7 +7,7 @@ Minimise le problème : ``min_{||s||< \delta_{k}} q_k(s) = s^{t}g + (1/2)s^{t}Hs
 sk = Gradient_Conjugue_Tronque(fk,gradfk,hessfk,option)
 ```
 
-# Entrées :   
+# Entrées :
    * **gradfk**           : (Array{Float,1}) le gradient de la fonction f appliqué au point xk
    * **hessfk**           : (Array{Float,2}) la Hessienne de la fonction f appliqué au point xk
    * **options**          : (Array{Float,1})
@@ -43,59 +43,64 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
 
    n = length(gradfk)
    sj = zeros(n)
+   s = zeros(n)
    p = -(gradfk)
    g = gradfk
 
-   for j = 1:max_iter
 
+   for j = 1:max_iter
         #a
         k = transpose(p) * hessfk * p
 
         #b
         if (k <= 0)
-            discriminant = 4 * (sj * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+            discriminant = 4 * (transpose(sj) * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+
             sigma1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
             sigma2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
+
             s1 = sj + sigma1 * p
             s2 = sj + sigma2 * p
-            if (transpose(gradfk) * s1 + (1 / 2) * transpose(s1) * hessfk * s1) < (transpose(gradfk) * s2 + (1 / 2) * transpose(s2) * hessfk * s2)
-                s = s1
-            else
-                s = s2
-            end
-       end
 
+
+            s=min((transpose(gradfk) * s1 + (1 / 2) * transpose(s1) * hessfk * s1),(transpose(gradfk) * s2 + (1 / 2) * transpose(s2) * hessfk * s2))
+            break
+       end
        #c
        alpha = transpose(g) * g / k
 
        #d
        if norm(sj + alpha * p) >= deltak
-           discriminant = 4 * (sj * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+           discriminant = 4 * (transpose(sj) * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
            sigma1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
            sigma2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
-           s1 = sj + sigma1 * p
-           s2 = sj + sigma2 * p
-           s=min((transpose(gradfk) * s1 + (1 / 2) * transpose(s1) * hessfk * s1),(transpose(gradfk) * s2 + (1 / 2) * transpose(s2) * hessfk * s2))
+
+           #On prend la veluer de sigma qui est positive
+           s = sj + max(sigma1,sigma2) * p
+
+           break
        end
 
 
 
        #e
-       s = sj +alpha*p
+       sj = sj + alpha*p
 
        #f
-       g_next = g+alpha*hessfk*p
+       g_next = g + alpha * hessfk * p
 
        #g
-       beta = transpose(g_next)*g/(transpose(g)*g)
+       beta = transpose(g_next)*g_next/(transpose(g)*g)
 
        #h
        p = -g_next + beta*p
+       g = g_next
 
        #i
-       convergence = (norm(gradfk) <=  Tol)
+       convergence = (norm(g,2)<tol*norm((gradfk),2))
 
        if convergence
+           s=sj
            break
        end
    end
