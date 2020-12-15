@@ -45,7 +45,6 @@ function Pas_De_Cauchy(g,H,delta)
       s = zeros(n)
       e = 0
     elseif x > 0
-      #Cas Convexe
       t = (ng^2) / x
       if t > delta/ng
         t = delta / ng
@@ -55,7 +54,6 @@ function Pas_De_Cauchy(g,H,delta)
       end
       s = - t * g
     else
-      #Cas Concave
       t = (delta / ng)
       s = - t * g
       e = 0

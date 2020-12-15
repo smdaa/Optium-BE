@@ -67,13 +67,60 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
 		lambda0 = options[4]
 		mu0 = options[5]
 		tho = options[6]
-	end
+  end
+  
+  if (algo != "newton") && (algo != "cauchy") && (algo != "gct")
+    println("Usage : algo = newton | cauchy | gct")
+    return
+  end
 
-    n = length(x0)
-    xmin = zeros(n)
+  n = length(x0)
+  xmin = zeros(n)
 	fxmin = 0
 	flag = 0
-	iter = 0
-	
+  iter = 0
+  mu = mu0
+  lambda = lambda0
+  epsilon0 = 1 / mu0
+  epsilon = epsilon0
+  alpha = 0.1
+  beta = 0.9
+  etac0 = 0.1258925
+  eta0 = etac0 / (mu0 ^ alpha)
+  eta = eta0
+  etac = etac0
+
+  convergence = false 
+
+  while (! convergence) && (nb_iters <= max_iter)
+    LA(x) = fonc(x) + transpose(lambda) * contrainte(x) + (1 / 2) * mu * (norm(contrainte(x)) ^ 2)
+    grad_LA(x) = gradfonc(x) + transpose(lambda) * grad_contrainte(x) + 0 #TODO
+    hess_LA(x) = hessfonc(x) + transpose(lambda) * hess_contrainte(x) + 0 #TODO
+    #a
+    if algo == "newton"
+      xl, ~ = Algorithme_De_Newton(LA, grad_LA, hess_LA, x0, [])
+    elseif algo=="cauchy"
+      x1, ~ = Regions_De_Confiance("cauchy", LA, grad_LA, hess_LA, x0, [])
+    elseif algo=="gct"
+      x1, ~ = Regions_De_Confiance("gct", LA, grad_LA, hess_LA, x0, [])
+    end
+    convergence = (norm(grad_LA(xl)) <= tol * norm(grad_LA(xl))) && (norm(contrainte(xl)) <= tol * norm(contrainte(xl)))
+    if convergence 
+      xmin = xl
+      break
+    end
+    #b
+    if (norm(contrainte(xl)) <= eta)
+      lambda = lambda + mu * contrainte(xl)
+      epsilon = epsilon / mu
+      eta = eta / (mu ^ beta)
+    else
+      mu = tho * mu
+      epsilon = epsilon0 / mu
+      eta = etac0 / (mu ^ alpha)
+    end
+    iter = iter + 1
+  end
+	fxmin = fonc(xmin)
 	return xmin,fxmin,flag,iter
 end

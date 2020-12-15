@@ -54,50 +54,53 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
 
         #b
         if (k <= 0)
-            discriminant = 4 * (transpose(sj) * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+            discriminant = (4 * (transpose(sj) * p)^2) - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
 
-            sigma1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
-            sigma2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
+            r1 = ((-2 * transpose(sj) * p) - sqrt(discriminant)) / (2 * (norm(p)^2))
+            r2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
 
-            s1 = sj + sigma1 * p
-            s2 = sj + sigma2 * p
+            qr1 = transpose(gradfk) * (r1 * p + sj) + (1 / 2) * (transpose(sj + r1 * p)) * hessfk * (sj + r1 * p)
+            qr2 = transpose(gradfk) * (r2 * p + sj) + (1 / 2) * (transpose(sj + r2 * p)) * hessfk * (sj + r2 * p) 
 
+            min = r2
+            if qr1 < qr2 
+                min = r1
+            end
+            s = sj + min * p
 
-            s=min((transpose(gradfk) * s1 + (1 / 2) * transpose(s1) * hessfk * s1),(transpose(gradfk) * s2 + (1 / 2) * transpose(s2) * hessfk * s2))
             break
        end
+
        #c
-       alpha = transpose(g) * g / k
+       alpha = (transpose(g) * g) / k
 
        #d
-       if norm(sj + alpha * p) >= deltak
+       if norm(sj + alpha * p, 2) >= deltak
            discriminant = 4 * (transpose(sj) * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
-           sigma1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
-           sigma2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
 
-           #On prend la veluer de sigma qui est positive
-           s = sj + max(sigma1,sigma2) * p
+           r1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
+           r2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
 
+           #On prend la valeur de sigma qui est positive
+           s = sj + max(r1,r2) * p
            break
        end
 
-
-
        #e
-       sj = sj + alpha*p
+       sj = sj + alpha * p
 
        #f
        g_next = g + alpha * hessfk * p
 
        #g
-       beta = transpose(g_next)*g_next/(transpose(g)*g)
+       beta = (transpose(g_next) * g_next) / (transpose(g) * g)
 
        #h
-       p = -g_next + beta*p
+       p = -g_next + beta * p
        g = g_next
 
        #i
-       convergence = (norm(g,2)<tol*norm((gradfk),2))
+       convergence = (norm(g,2) < tol * norm((gradfk),2))
 
        if convergence
            s=sj
