@@ -93,8 +93,8 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
 
   while (iter <= itermax)
     LA(x) = fonc(x) + transpose(lambda) * contrainte(x) + (1 / 2) * mu * (norm(contrainte(x)) ^ 2)
-    grad_LA(x) = gradfonc(x) + transpose(lambda) * grad_contrainte(x) + mu * transpose(grad_contrainte(x)) * contrainte(x)
-    hess_LA(x) = hessfonc(x) + transpose(lambda) * hess_contrainte(x) + mu * (transpose(grad_contrainte(x)) * grad_contrainte(x))
+    grad_LA(x) = gradfonc(x) + transpose(lambda) * grad_contrainte(x) + mu * grad_contrainte(x) * contrainte(x)
+    hess_LA(x) = hessfonc(x) + transpose(lambda) * hess_contrainte(x) + mu * (grad_contrainte(x) * transpose(grad_contrainte(x)) )
     #a
     if algo == "newton"
       xl, ~ = Algorithme_De_Newton(LA, grad_LA, hess_LA, x0, [])
