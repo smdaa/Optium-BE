@@ -59,8 +59,8 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
             r1 = ((-2 * transpose(sj) * p) - sqrt(discriminant)) / (2 * (norm(p)^2))
             r2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
 
-            qr1 = transpose(gradfk) * (r1 * p + sj) + (1 / 2) * (transpose(sj + r1 * p)) * hessfk * (sj + r1 * p)
-            qr2 = transpose(gradfk) * (r2 * p + sj) + (1 / 2) * (transpose(sj + r2 * p)) * hessfk * (sj + r2 * p) 
+            qr1 = transpose(g) * (r1 * p + sj) + (1 / 2) * (transpose(sj + r1 * p)) * hessfk * (sj + r1 * p)
+            qr2 = transpose(g) * (r2 * p + sj) + (1 / 2) * (transpose(sj + r2 * p)) * hessfk * (sj + r2 * p) 
 
             min = r2
             if qr1 < qr2 
@@ -76,13 +76,13 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
 
        #d
        if norm(sj + alpha * p, 2) >= deltak
-           discriminant = 4 * (transpose(sj) * p)^2 - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+           discriminant = (4 * (transpose(sj) * p)^2) - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
 
            r1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
            r2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
 
            #On prend la valeur de sigma qui est positive
-           s = sj + max(r1,r2) * p
+           s = sj + (max(r1,r2)) * p
            break
        end
 
