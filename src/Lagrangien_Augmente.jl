@@ -90,11 +90,13 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
   eta0 = etac0 / (mu0 ^ alpha)
   eta = eta0
   etac = etac0
+  grad_LA0 = gradfonc(x0) + transpose(lambda0) * grad_contrainte(x0) + mu0 * grad_contrainte(x0) * contrainte(x0) 
 
   while (iter <= itermax)
     LA(x) = fonc(x) + transpose(lambda) * contrainte(x) + (1 / 2) * mu * (norm(contrainte(x)) ^ 2)
     grad_LA(x) = gradfonc(x) + transpose(lambda) * grad_contrainte(x) + mu * grad_contrainte(x) * contrainte(x)
     hess_LA(x) = hessfonc(x) + transpose(lambda) * hess_contrainte(x) + mu * (grad_contrainte(x) * transpose(grad_contrainte(x)) )
+
     #a
     if algo == "newton"
       xl, ~ = Algorithme_De_Newton(LA, grad_LA, hess_LA, x0, [])
@@ -103,7 +105,7 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
     elseif algo == "gct"
       xl, ~ = Regions_De_Confiance("gct", LA, grad_LA, hess_LA, x0, [])
     end
-    convergence = (norm(grad_LA(xl)) <= tol * norm(grad_LA(xl))) && (norm(contrainte(xl)) <= tol * norm(contrainte(xl)))
+    convergence = (norm(grad_LA(xl)) <= tol * norm(grad_LA0)) && (norm(contrainte(xl)) <= tol * norm(contrainte(x0)))
     if convergence 
       xmin = xl
       break
