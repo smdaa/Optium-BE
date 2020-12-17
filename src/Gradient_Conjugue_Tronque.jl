@@ -53,7 +53,7 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
         k = transpose(p) * hessfk * p
 
         #b
-        if (k <= 0)
+        if (k <= 0) && (norm(p) > 0)
             discriminant = (4 * (transpose(sj) * p)^2) - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
 
             r1 = ((-2 * transpose(sj) * p) - sqrt(discriminant)) / (2 * (norm(p)^2))
