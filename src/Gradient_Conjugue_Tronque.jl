@@ -34,6 +34,7 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
     if options == []
         deltak = 2
         max_iter = 100
+        #max_iter = 1
         tol = 1e-6
     else
         deltak = options[1]
@@ -51,57 +52,47 @@ function Gradient_Conjugue_Tronque(gradfk,hessfk,options)
    for j = 1:max_iter
         #a
         k = transpose(p) * hessfk * p
-
         #b
-        if (k <= 0) && (norm(p) > 0)
-            discriminant = (4 * (transpose(sj) * p)^2) - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
+        if (k <= 0) 
+            if (norm(p) > 0)
+                discriminant = (4 * (transpose(sj) * p)^2) - 4 * (norm(p) ^ 2) * ((norm(sj) ^ 2) - deltak ^ 2)
+                racine1 = ((-2 * transpose(sj) * p) - sqrt(discriminant)) / (2 * (norm(p)^2))
+                racine2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
+                qracine1 = transpose(g) * (racine1 * p + sj) + (1 / 2) * (transpose(sj + racine1 * p)) * hessfk * (sj + racine1 * p)
+                qracine2 = transpose(g) * (racine2 * p + sj) + (1 / 2) * (transpose(sj + racine2 * p)) * hessfk * (sj + racine2 * p) 
+                min = racine2
+                if qracine1 < qracine2 
+                    min = racine1
+                end
+                s = sj + min * p
+                #s = sj
+                break
 
-            r1 = ((-2 * transpose(sj) * p) - sqrt(discriminant)) / (2 * (norm(p)^2))
-            r2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
-
-            qr1 = transpose(g) * (r1 * p + sj) + (1 / 2) * (transpose(sj + r1 * p)) * hessfk * (sj + r1 * p)
-            qr2 = transpose(g) * (r2 * p + sj) + (1 / 2) * (transpose(sj + r2 * p)) * hessfk * (sj + r2 * p) 
-
-            min = r2
-            if qr1 < qr2 
-                min = r1
             end
-            s = sj + min * p
-
-            break
        end
-
        #c
        alpha = (transpose(g) * g) / k
-
        #d
        if norm(sj + alpha * p, 2) >= deltak
            discriminant = (4 * (transpose(sj) * p)^2) - 4 * (norm(p)^2) * ((norm(sj)^2) - deltak^2)
-
-           r1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
-           r2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
-
+           racine1 = (-2 * transpose(sj) * p - sqrt(discriminant)) / (2 * (norm(p)^2))
+           racine2 = (-2 * transpose(sj) * p + sqrt(discriminant)) / (2 * (norm(p)^2))
            #On prend la valeur de sigma qui est positive
-           s = sj + (max(r1,r2)) * p
+           s = sj + (max(racine1,racine2)) * p
+           #s = sj
            break
        end
-
        #e
        sj = sj + alpha * p
-
        #f
        g_next = g + alpha * hessfk * p
-
        #g
        beta = (transpose(g_next) * g_next) / (transpose(g) * g)
-
        #h
        p = -g_next + beta * p
        g = g_next
-
        #i
        convergence = (norm(g,2) < tol * norm((gradfk),2))
-
        if convergence
            s=sj
            break

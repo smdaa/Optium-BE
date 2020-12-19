@@ -60,6 +60,7 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
 		lambda0 = 2
 		mu0 = 100
 		tho = 2
+		#tho = .5
 	else
 		epsilon = options[1]
 		tol = options[2]
@@ -93,34 +94,41 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
   grad_LA0 = gradfonc(x0) + transpose(lambda0) * grad_contrainte(x0) + mu0 * grad_contrainte(x0) * contrainte(x0) 
 
   while (iter <= itermax)
-    LA(x) = fonc(x) + transpose(lambda) * contrainte(x) + (1 / 2) * mu * (norm(contrainte(x)) ^ 2)
-    grad_LA(x) = gradfonc(x) + transpose(lambda) * grad_contrainte(x) + mu * grad_contrainte(x) * contrainte(x)
-    hess_LA(x) = hessfonc(x) + transpose(lambda) * hess_contrainte(x) + mu * (hess_contrainte(x) * contrainte(x) + (grad_contrainte(x) * transpose(grad_contrainte(x))))
-
+    function LA(x)
+      fonc(x) + transpose(lambda) * contrainte(x) + (1 / 2) * mu * (norm(contrainte(x)) ^ 2)
+    end
+    function grad_LA(x) 
+       gradfonc(x) + transpose(lambda) * grad_contrainte(x) + mu * grad_contrainte(x) * contrainte(x)
+    end
+    function hess_LA(x) 
+      hessfonc(x) + transpose(lambda) * hess_contrainte(x) + mu * (hess_contrainte(x) * contrainte(x) + (grad_contrainte(x) * transpose(grad_contrainte(x))))
+    end
     #a
     if algo == "newton"
-      xl, ~ = Algorithme_De_Newton(LA, grad_LA, hess_LA, x0, [])
+      x1, ~ = Algorithme_De_Newton(LA, grad_LA, hess_LA, x0, [])
     elseif algo == "cauchy"
-      xl, ~ = Regions_De_Confiance("cauchy", LA, grad_LA, hess_LA, x0, [])
+      x1, ~ = Regions_De_Confiance("cauchy", LA, grad_LA, hess_LA, x0, [])
     elseif algo == "gct"
-      xl, ~ = Regions_De_Confiance("gct", LA, grad_LA, hess_LA, x0, [])
+      x1, ~ = Regions_De_Confiance("gct", LA, grad_LA, hess_LA, x0, [])
     end
-    convergence = (norm(grad_LA(xl)) <= max(tol * norm(grad_LA0), epsilon)) && (norm(contrainte(xl)) <= max(tol * norm(contrainte(x0)), epsilon))
+    convergence = (norm(grad_LA(x1)) <= max(tol * norm(grad_LA0), epsilon)) && (norm(contrainte(x1)) <= max(tol * norm(contrainte(x0)), epsilon))
+    #convergence = (norm(grad_LA(x1)) <= tol * norm(grad_LA0)) && (norm(contrainte(x1)) <= tol * norm(contrainte(x0)))
     if convergence 
-      xmin = xl
+      xmin = x1
       break
     end
     #b
-    if (norm(contrainte(xl)) <= eta)
-      lambda = lambda + mu * contrainte(xl)
+    if (norm(contrainte(x1)) <= eta)
+      lambda = lambda + mu * contrainte(x1)
       epsilon = epsilon / mu
       eta = eta / (mu ^ beta)
+      iter = iter + 1
     else
       mu = tho * mu
       epsilon = epsilon0 / mu
       eta = etac0 / (mu ^ alpha)
+      iter = iter + 1
     end
-    iter = iter + 1
   end
   if (iter > itermax)
     flag = 1
