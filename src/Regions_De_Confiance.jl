@@ -81,7 +81,7 @@ function Regions_De_Confiance(algo,f::Function,gradf::Function,hessf::Function,x
     while ((! convergence) || (! stagnation_x) || (! stagnation_f)) && (nb_iters <= max_iter)
         # a. calculer approximativement s_k solution du sous-problème (2.1)
         if algo=="cauchy"
-            s, e = Pas_De_Cauchy(gradf(x0), hessf(x0), delta0)
+            s, ~ = Pas_De_Cauchy(gradf(x0), hessf(x0), delta0)
         end
         if algo=="gct"
             s = Gradient_Conjugue_Tronque(gradf(x0), hessf(x0), [delta0,max_iter,Tol_rel])

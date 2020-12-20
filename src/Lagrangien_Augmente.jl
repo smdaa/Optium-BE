@@ -111,7 +111,7 @@ function Lagrangien_Augmente(algo,fonc::Function,contrainte::Function,gradfonc::
     elseif algo == "gct"
       x1, ~ = Regions_De_Confiance("gct", LA, grad_LA, hess_LA, x0, [])
     end
-    convergence = (norm(grad_LA(x1)) <= max(tol * norm(grad_LA0), epsilon)) && (norm(contrainte(x1)) <= max(tol * norm(contrainte(x0)), epsilon))
+    convergence = (norm(grad_LA(x1)) <= max(tol * norm(grad_LA0), tol)) && (norm(contrainte(x1)) <= max(tol * norm(contrainte(x0)), tol))
     #convergence = (norm(grad_LA(x1)) <= tol * norm(grad_LA0)) && (norm(contrainte(x1)) <= tol * norm(contrainte(x0)))
     if convergence 
       xmin = x1
