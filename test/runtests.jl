@@ -12,7 +12,7 @@ include("../src/Regions_De_Confiance.jl")
 
 TestOptinum.cacher_stacktrace()
 
-affiche = true
+affiche = false
 println("affiche = ",affiche)
 # Tester l'ensemble des algorithmes
 @testset "Test SujetOptinum" begin
